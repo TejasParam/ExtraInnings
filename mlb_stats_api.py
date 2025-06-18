@@ -35,3 +35,30 @@ def get_game_ids_for_day(date):
     for game in games:
         game_ids.append(game['game_id'])
     return game_ids
+
+#score differntial for a given game id
+def get_score_differential(game_id):
+    game_info = statsapi.schedule(game_id=game_id)[0]
+    score_diff = abs(game_info["home_score"]-game_info["away_score"])
+    return score_diff
+
+def rank_yesterdays_games_by_score_differential():
+    games = get_game_ids_for_day(get_yesterday_date())
+    games_ranked = sorted(games, key=get_score_differential)
+    return games_ranked
+
+def game_title(game_id):
+    game_info = statsapi.schedule(game_id=game_id)[0]
+    title = game_info['game_date']+ ": " + game_info['away_name'] + " @ " + game_info["home_name"]
+    return title
+
+def print_ranked_games_highlight_links():
+     games_ranked = rank_yesterdays_games_by_score_differential()
+     for game in games_ranked:
+         print(game_title(game) + ": " + get_condensed_game(game))
+
+def main():
+    print_ranked_games_highlight_links()
+
+if __name__ == "__main__":
+    main()
