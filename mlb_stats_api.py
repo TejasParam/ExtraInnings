@@ -19,8 +19,9 @@ for team in teams_info:
 def get_condensed_game(game_Id):
     highlight_videos= statsapi.game_highlight_data(game_Id)
     video_url = ""
-    if 'condensed-game' in highlight_videos[-2]['id']:
-        video_url = highlight_videos[-2]['playbacks'][0]['url']
+    for link in highlight_videos:
+        if 'condensed-game' in link['id']:
+            video_url = link['playbacks'][0]['url']
     return video_url
 
 def get_yesterday_date():
