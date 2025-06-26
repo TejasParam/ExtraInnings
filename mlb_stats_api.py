@@ -9,10 +9,9 @@ from datetime import datetime, timedelta, date
 
 #create dictionary of team ids
 teams_info = statsapi.get('teams',{'sportId':1})['teams']
-teamIds = []
+teamIds = {}
 for team in teams_info:
-    name_id = {team['teamName']: team['id']}
-    teamIds.append(name_id)
+    teamIds[team['teamName']] = team['id']
 
 
 #get link to condensed game from highlight plays endpoint

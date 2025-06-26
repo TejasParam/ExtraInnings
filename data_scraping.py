@@ -13,6 +13,16 @@ class Game:
     def set_double_header_game(self, game_num):
         self.game_num = game_num
     
+    def set_home_id(self, home_id):
+        self.home_id = home_id
+    
+    def set_away_id(self, away_id):
+        self.away_id = away_id
+    
+    def set_expected_views(self, expected_views):
+        self.expected_views = expected_views
+        self.views_above_expected = self.view_count - self.expected_views
+    
 
 
 def get_playlist_videos(url):
@@ -79,9 +89,5 @@ for game_title in video_info:
     if curr_game.is_double_header:
         curr_game.set_double_header_game(game_title_info[4])
     game_info.append(curr_game)
-    
-for game in game_info:
-    print(game.home_team,game.away_team,game.date,game.view_count)
-
 
 
