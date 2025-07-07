@@ -52,3 +52,12 @@ for team in team_views:
 for game in cleaned_game_list:
     expected_views = (team_avg_views[game.home_id] + team_avg_views[game.away_id]) / 2
     game.set_expected_views(expected_views)
+
+def get_normalized_score(game):
+    return game.normalized_views
+
+sg= cleaned_game_list.copy()
+sg.sort(key=get_normalized_score,reverse=True)
+
+for g in sg:
+    print(g.normalized_views, g.home_team, g.away_team, g.date, g.view_count)

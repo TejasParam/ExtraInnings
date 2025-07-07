@@ -5,12 +5,15 @@ import statsapi
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
+from pybaseball import statcast
 
 
 #create dictionary of team ids
 teams_info = statsapi.get('teams',{'sportId':1})['teams']
 teamIds = {}
+team_abbreviations = {}
 for team in teams_info:
+    team_abbreviations[team['abbreviation']] = team['id']
     teamIds[team['teamName']] = team['id']
 
 
@@ -57,8 +60,24 @@ def print_ranked_games_highlight_links():
      for game in games_ranked:
          print(game_title(game) + ": " + get_condensed_game(game))
 
+def rank_games_excitement(start_date, end_date):
+    pitch_data = statcast(start_dt=start_date,end_dt=end_date)
+    pitch_data['delta_home_win_exp'] = pitch_data["delta_home_win_exp"].apply(lambda x: abs(x))
+    pitch_data = pitch_data[['game_pk','game_date','home_team','away_team','delta_home_win_exp']].groupby("game_pk")
+    game_excitement = pitch_data.agg({'game_date': 'first', 
+                        'home_team': 'first', 
+                        'away_team': 'first', 
+                        'delta_home_win_exp': 'sum'}).sort_values(by='delta_home_win_exp',ascending=False).reset_index()
+    return game_excitement
+
+        
+
 def main():
-    print_ranked_games_highlight_links()
+    #print_ranked_games_highlight_links()
+    # for k in team_abbreviations:
+    #     print(k, team_abbreviations[k])
+    games = rank_games_excitement("2025-06-01","2025-06-30")
+    print(games)
 
 if __name__ == "__main__":
     main()

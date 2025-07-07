@@ -1,5 +1,6 @@
 import yt_dlp
 from mlb_stats_api import teamIds
+import numpy as np
 import re
 
 class Game:
@@ -21,7 +22,7 @@ class Game:
     
     def set_expected_views(self, expected_views):
         self.expected_views = expected_views
-        self.views_above_expected = self.view_count - self.expected_views
+        self.normalized_views = np.log1p(self.view_count / self.expected_views)
     
 
 
@@ -89,5 +90,3 @@ for game_title in video_info:
     if curr_game.is_double_header:
         curr_game.set_double_header_game(game_title_info[4])
     game_info.append(curr_game)
-
-
