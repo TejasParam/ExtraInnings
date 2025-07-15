@@ -1,0 +1,7 @@
+psycopg2-binary
+MLB-Statsapi
+pybaseball
+python-dotenv
+pandas
+numpy
+requests
