@@ -92,6 +92,18 @@ def rank_games_excitement(start_date, end_date, timeout=60):
     except Exception as e:
         print(f"Error loading statcast data for {start_date} to {end_date}: {e}")
         return pd.DataFrame()
+    
+def safe_get_condensed_game(game_id, timeout=10):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(get_condensed_game, game_id)
+        try:
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            print(f"Timeout getting highlight for game_id {game_id}")
+            return ""
+        except Exception as e:
+            print(f"Error getting highlight for game_id {game_id}: {e}")
+            return ""
 
         
 
