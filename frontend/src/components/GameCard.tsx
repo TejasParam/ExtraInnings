@@ -41,6 +41,17 @@ export const GameCard: React.FC<GameCardProps> = ({ game, gameNumber }) => {
           </div>
         </div>
         
+        {/* Game Date */}
+        <div className="text-center">
+          <span className="text-sm text-secondary-500">
+            {new Date(game.game_date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </span>
+        </div>
+        
         {/* Highlight Link */}
         {game.highlight_url ? (
           <div className="text-center">
