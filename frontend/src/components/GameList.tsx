@@ -9,28 +9,72 @@ export const GameList: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('month');
   const [sortOption, setSortOption] = useState<SortOption>('excitement');
   const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
+  const [periodOffset, setPeriodOffset] = useState(0); // 0 = current/most recent, -1 = previous, +1 = next
 
-  // Calculate date range based on filter - using actual recent dates with games
-  const getDateRange = (filter: TimeFilter) => {
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (timeFilter === 'custom') return; // Don't navigate for custom ranges
+      
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setPeriodOffset(prev => prev - 1); // Go to previous period
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setPeriodOffset(prev => prev + 1); // Go to next period
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [timeFilter]);
+
+  // Reset offset when filter changes
+  useEffect(() => {
+    setPeriodOffset(0);
+  }, [timeFilter]);
+
+  // Calculate date range based on filter and offset
+  const getDateRange = (filter: TimeFilter, offset: number = 0) => {
+    const baseDate = new Date('2024-10-30'); // Most recent date with games
+    
     switch (filter) {
       case 'day':
-        // Show the most recent day with games (October 30, 2024)
-        return { start: '2024-10-30', end: '2024-10-30' };
+        const dayDate = new Date(baseDate);
+        dayDate.setDate(dayDate.getDate() + offset);
+        const dayStr = dayDate.toISOString().split('T')[0];
+        return { start: dayStr, end: dayStr };
+        
       case 'week':
-        // Show the most recent week with games (October 24-30, 2024)
-        return { start: '2024-10-24', end: '2024-10-30' };
+        const weekDate = new Date(baseDate);
+        weekDate.setDate(weekDate.getDate() + (offset * 7));
+        const weekStart = new Date(weekDate);
+        weekStart.setDate(weekStart.getDate() - 6); // Go back 6 days for week start
+        return { 
+          start: weekStart.toISOString().split('T')[0], 
+          end: weekDate.toISOString().split('T')[0] 
+        };
+        
       case 'month':
-        // Show the most recent month with games (October 2024)
-        return { start: '2024-10-01', end: '2024-10-31' };
+        const monthDate = new Date(baseDate);
+        monthDate.setMonth(monthDate.getMonth() + offset);
+        const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+        return { 
+          start: monthStart.toISOString().split('T')[0], 
+          end: monthEnd.toISOString().split('T')[0] 
+        };
+        
       case 'season':
-        // Show the most recent complete season (2024)
-        return { start: '2024-03-01', end: '2024-11-30' };
+        const seasonYear = 2024 + offset;
+        return { start: `${seasonYear}-03-01`, end: `${seasonYear}-11-30` };
+        
       default:
         return dateRange;
     }
   };
 
-  const currentDateRange = timeFilter === 'custom' ? dateRange : getDateRange(timeFilter);
+  const currentDateRange = timeFilter === 'custom' ? dateRange : getDateRange(timeFilter, periodOffset);
 
   const { data, loading, error } = useGames({
     sort: sortOption,
@@ -84,7 +128,7 @@ export const GameList: React.FC = () => {
 
       // Generate period title
       let periodTitle = '';
-      const range = getDateRange(timeFilter);
+      const range = getDateRange(timeFilter, periodOffset);
       
       if (timeFilter === 'day') {
         periodTitle = new Date(range.start!).toLocaleDateString('en-US', {
@@ -158,6 +202,45 @@ export const GameList: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Navigation Controls - Only show for non-custom filters */}
+      {timeFilter !== 'custom' && (
+        <div className="flex items-center justify-center gap-4 py-4">
+          <button
+            onClick={() => setPeriodOffset(prev => prev - 1)}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-700 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Previous
+          </button>
+          
+          <div className="text-center">
+            <div className="text-sm text-secondary-500">
+              Use ← → arrow keys to navigate
+            </div>
+            {periodOffset !== 0 && (
+              <button
+                onClick={() => setPeriodOffset(0)}
+                className="text-xs text-primary-600 hover:text-primary-700 underline mt-1"
+              >
+                Back to current
+              </button>
+            )}
+          </div>
+          
+          <button
+            onClick={() => setPeriodOffset(prev => prev + 1)}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-700 rounded-lg transition-colors"
+          >
+            Next
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Games List */}
       <div className="space-y-8">
