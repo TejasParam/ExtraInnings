@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Game } from '../types/game';
 
 interface GameCardProps {
@@ -7,11 +7,17 @@ interface GameCardProps {
 }
 
 export const GameCard: React.FC<GameCardProps> = ({ game, gameNumber }) => {
+  const [scoreRevealed, setScoreRevealed] = useState(false);
+  
   const formatScore = () => {
     if (game.home_score !== null && game.away_score !== null) {
       return `${game.away_score} - ${game.home_score}`;
     }
     return 'TBD';
+  };
+
+  const toggleScore = () => {
+    setScoreRevealed(!scoreRevealed);
   };
 
   return (
@@ -28,7 +34,18 @@ export const GameCard: React.FC<GameCardProps> = ({ game, gameNumber }) => {
             {game.away_team} vs {game.home_team}
           </div>
           <div className="text-sm text-secondary-600 mt-1">
-            Score: {formatScore()}
+            Score: 
+            <button
+              onClick={toggleScore}
+              className={`ml-1 px-2 py-1 rounded transition-all duration-200 ${
+                scoreRevealed 
+                  ? 'bg-transparent text-secondary-600' 
+                  : 'bg-secondary-800 text-secondary-800 hover:bg-secondary-700 cursor-pointer select-none'
+              }`}
+              title={scoreRevealed ? 'Click to hide score' : 'Click to reveal score'}
+            >
+              {scoreRevealed ? formatScore() : '█████'}
+            </button>
           </div>
         </div>
         
