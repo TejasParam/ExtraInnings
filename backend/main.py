@@ -18,7 +18,7 @@ app = FastAPI(title="MLB Exciting Games API", version="1.0.0")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React dev server
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -152,7 +152,7 @@ async def root():
 @app.get("/games", response_model=GameResponse)
 async def get_games(
     season: Optional[str] = Query(None, description="Filter by season (year)"),
-    limit: int = Query(25, ge=1, le=100, description="Number of games to return"),
+    limit: int = Query(25, ge=1, le=1000, description="Number of games to return"),
     page: int = Query(1, ge=1, description="Page number"),
     sort: str = Query("excitement", description="Sort by: excitement, date, or score_diff"),
     team: Optional[str] = Query(None, description="Filter by team abbreviation"),

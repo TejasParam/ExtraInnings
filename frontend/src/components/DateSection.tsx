@@ -11,7 +11,9 @@ interface DateSectionProps {
 export const DateSection: React.FC<DateSectionProps> = ({ date, games }) => {
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'M/d/yyyy');
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return format(date, 'M/d/yyyy');
     } catch {
       return dateString;
     }

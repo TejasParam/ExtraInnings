@@ -61,11 +61,16 @@ export const GameCard: React.FC<GameCardProps> = ({ game, gameNumber }) => {
         {/* Game Date */}
         <div className="text-center">
           <span className="text-sm text-secondary-500">
-            {new Date(game.game_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}
+            {(() => {
+              // Parse date string to avoid timezone issues
+              const [year, month, day] = game.game_date.split('-').map(Number);
+              const date = new Date(year, month - 1, day);
+              return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+            })()}
           </span>
         </div>
         

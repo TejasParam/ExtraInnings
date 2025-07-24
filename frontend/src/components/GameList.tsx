@@ -9,19 +9,32 @@ export const GameList: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('month');
   const [sortOption, setSortOption] = useState<SortOption>('excitement');
   const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
-  const [periodOffset, setPeriodOffset] = useState(0); // 0 = current/most recent, -1 = previous, +1 = next
+  const [periodOffset, setPeriodOffset] = useState(0); // 0 = current/most recent, higher = older periods
+
+  // Get the maximum offset for the current filter type
+  const getMaxOffset = (filter: TimeFilter) => {
+    switch (filter) {
+      case 'day': return 34; // 35 days total (0-34)
+      case 'week': return 7; // 8 weeks total (0-7)  
+      case 'month': return 7; // 8 months total (0-7)
+      case 'season': return 2; // 3 seasons total (0-2)
+      default: return 0;
+    }
+  };
 
   // Add keyboard navigation
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (timeFilter === 'custom') return; // Don't navigate for custom ranges
       
+      const maxOffset = getMaxOffset(timeFilter);
+      
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        setPeriodOffset(prev => prev - 1); // Go to previous period
+        setPeriodOffset(prev => Math.min(maxOffset, prev + 1)); // Go to older period, don't exceed max
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        setPeriodOffset(prev => prev + 1); // Go to next period
+        setPeriodOffset(prev => Math.max(0, prev - 1)); // Go to newer period, don't go negative
       }
     };
 
@@ -36,38 +49,57 @@ export const GameList: React.FC = () => {
 
   // Calculate date range based on filter and offset
   const getDateRange = (filter: TimeFilter, offset: number = 0) => {
-    const baseDate = new Date('2024-10-30'); // Most recent date with games
-    
     switch (filter) {
       case 'day':
-        const dayDate = new Date(baseDate);
-        dayDate.setDate(dayDate.getDate() + offset);
-        const dayStr = dayDate.toISOString().split('T')[0];
-        return { start: dayStr, end: dayStr };
+        const recentDates = [
+          '2024-10-30', '2024-10-29', '2024-10-28', '2024-10-27', '2024-10-26',
+          '2024-10-25', '2024-10-24', '2024-10-23', '2024-10-22', '2024-10-21',
+          '2024-10-20', '2024-10-19', '2024-10-18', '2024-10-17', '2024-10-16',
+          '2024-10-15', '2024-10-14', '2024-10-13', '2024-10-12', '2024-10-11',
+          '2024-10-10', '2024-10-09', '2024-10-08', '2024-10-07', '2024-10-06',
+          '2024-10-05', '2024-10-04', '2024-10-03', '2024-10-02', '2024-10-01',
+          '2024-09-30', '2024-09-29', '2024-09-28', '2024-09-27', '2024-09-26'
+        ];
+        const dayIndex = Math.max(0, Math.min(offset, recentDates.length - 1));
+        const dateStr = recentDates[dayIndex];
+        return { start: dateStr, end: dateStr };
         
       case 'week':
-        const weekDate = new Date(baseDate);
-        weekDate.setDate(weekDate.getDate() + (offset * 7));
-        const weekStart = new Date(weekDate);
-        weekStart.setDate(weekStart.getDate() - 6); // Go back 6 days for week start
-        return { 
-          start: weekStart.toISOString().split('T')[0], 
-          end: weekDate.toISOString().split('T')[0] 
-        };
+        const weeks = [
+          { start: '2024-10-25', end: '2024-10-31' }, // Week 0 (most recent)
+          { start: '2024-10-18', end: '2024-10-24' }, // Week 1
+          { start: '2024-10-11', end: '2024-10-17' }, // Week 2
+          { start: '2024-10-04', end: '2024-10-10' }, // Week 3
+          { start: '2024-09-27', end: '2024-10-03' }, // Week 4
+          { start: '2024-09-20', end: '2024-09-26' }, // Week 5
+          { start: '2024-09-13', end: '2024-09-19' }, // Week 6
+          { start: '2024-09-06', end: '2024-09-12' }  // Week 7
+        ];
+        const weekIndex = Math.max(0, Math.min(offset, weeks.length - 1));
+        return weeks[weekIndex];
         
       case 'month':
-        const monthDate = new Date(baseDate);
-        monthDate.setMonth(monthDate.getMonth() + offset);
-        const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-        return { 
-          start: monthStart.toISOString().split('T')[0], 
-          end: monthEnd.toISOString().split('T')[0] 
-        };
+        const months = [
+          { start: '2024-10-01', end: '2024-10-31' }, // Month 0 (October 2024 - most recent)
+          { start: '2024-09-01', end: '2024-09-30' }, // Month 1 (September 2024)
+          { start: '2024-08-01', end: '2024-08-31' }, // Month 2 (August 2024)
+          { start: '2024-07-01', end: '2024-07-31' }, // Month 3 (July 2024)
+          { start: '2024-06-01', end: '2024-06-30' }, // Month 4 (June 2024)
+          { start: '2024-05-01', end: '2024-05-31' }, // Month 5 (May 2024)
+          { start: '2024-04-01', end: '2024-04-30' }, // Month 6 (April 2024)
+          { start: '2024-03-01', end: '2024-03-31' }  // Month 7 (March 2024)
+        ];
+        const monthIndex = Math.max(0, Math.min(offset, months.length - 1));
+        return months[monthIndex];
         
       case 'season':
-        const seasonYear = 2024 + offset;
-        return { start: `${seasonYear}-03-01`, end: `${seasonYear}-11-30` };
+        const seasons = [
+          { start: '2024-03-01', end: '2024-11-30' }, // Season 0 (2024 - most recent)
+          { start: '2023-03-01', end: '2023-11-30' }, // Season 1 (2023)
+          { start: '2022-03-01', end: '2022-11-30' }  // Season 2 (2022)
+        ];
+        const seasonIndex = Math.max(0, Math.min(offset, seasons.length - 1));
+        return seasons[seasonIndex];
         
       default:
         return dateRange;
@@ -80,7 +112,7 @@ export const GameList: React.FC = () => {
     sort: sortOption,
     start: currentDateRange.start,
     end: currentDateRange.end,
-    limit: 100,
+    limit: 500,
   });
 
   const handleCustomRange = (start: string, end: string) => {
@@ -131,23 +163,30 @@ export const GameList: React.FC = () => {
       const range = getDateRange(timeFilter, periodOffset);
       
       if (timeFilter === 'day') {
-        periodTitle = new Date(range.start!).toLocaleDateString('en-US', {
+        const [year, month, day] = range.start!.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        periodTitle = date.toLocaleDateString('en-US', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         });
       } else if (timeFilter === 'week') {
-        const startDate = new Date(range.start!);
-        const endDate = new Date(range.end!);
+        const [startYear, startMonth, startDay] = range.start!.split('-').map(Number);
+        const [endYear, endMonth, endDay] = range.end!.split('-').map(Number);
+        const startDate = new Date(startYear, startMonth - 1, startDay);
+        const endDate = new Date(endYear, endMonth - 1, endDay);
         periodTitle = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
       } else if (timeFilter === 'month') {
-        periodTitle = new Date(range.start!).toLocaleDateString('en-US', {
+        // Use a more explicit date construction to avoid timezone issues
+        const [year, month] = range.start!.split('-').map(Number);
+        const date = new Date(year, month - 1, 1); // month is 0-indexed in JS Date
+        periodTitle = date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long'
         });
       } else if (timeFilter === 'season') {
-        const year = new Date(range.start!).getFullYear();
+        const [year] = range.start!.split('-').map(Number);
         periodTitle = `${year} Season`;
       }
 
@@ -207,13 +246,13 @@ export const GameList: React.FC = () => {
       {timeFilter !== 'custom' && (
         <div className="flex items-center justify-center gap-4 py-4">
           <button
-            onClick={() => setPeriodOffset(prev => prev - 1)}
+            onClick={() => setPeriodOffset(prev => Math.min(getMaxOffset(timeFilter), prev + 1))}
             className="flex items-center gap-2 px-4 py-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-700 rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Previous
+            Older
           </button>
           
           <div className="text-center">
@@ -231,10 +270,10 @@ export const GameList: React.FC = () => {
           </div>
           
           <button
-            onClick={() => setPeriodOffset(prev => prev + 1)}
+            onClick={() => setPeriodOffset(prev => Math.max(0, prev - 1))}
             className="flex items-center gap-2 px-4 py-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-700 rounded-lg transition-colors"
           >
-            Next
+            Newer
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -250,12 +289,16 @@ export const GameList: React.FC = () => {
               {/* Section Header */}
               <h2 className="text-2xl font-bold text-secondary-900 mb-4 border-b-2 border-secondary-200 pb-2">
                 {section.type === 'date' ? 
-                  new Date(section.date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  }) : 
+                  (() => {
+                    const [year, month, day] = section.date.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    return date.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    });
+                  })() : 
                   section.title
                 }
               </h2>
