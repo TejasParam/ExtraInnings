@@ -6,6 +6,12 @@ import os
 from pydantic import BaseModel
 from datetime import date, datetime
 import pickle
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+import psycopg2
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="MLB Exciting Games API", version="1.0.0")
 
@@ -39,7 +45,50 @@ class GameResponse(BaseModel):
 
 # Load data
 def load_games_data():
-    """Load games data from CSV or pickle file"""
+    """Load games data from PostgreSQL or fall back to CSV/pickle file"""
+    try:
+        # Try to load from PostgreSQL first
+        db_name = os.getenv('DB_NAME')
+        db_user = os.getenv('DB_USER')
+        db_password = os.getenv('DB_PASSWORD')
+        db_host = os.getenv('DB_HOST')
+        db_port = os.getenv('DB_PORT')
+        
+        if all([db_name, db_user, db_password, db_host, db_port]):
+            # Create PostgreSQL connection
+            connection_string = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            engine = create_engine(connection_string)
+            
+            # Load data from PostgreSQL
+            query = """
+            SELECT 
+                id,
+                game_id,
+                date,
+                home_team,
+                away_team,
+                home_score,
+                away_score,
+                excitement,
+                season,
+                highlight_url
+            FROM games 
+            ORDER BY date DESC
+            """
+            df = pd.read_sql(query, engine)
+            
+            # Convert date column to datetime
+            if 'date' in df.columns:
+                df['date'] = pd.to_datetime(df['date'])
+            
+            print(f"Loaded {len(df)} games from PostgreSQL database")
+            return df
+            
+    except Exception as e:
+        print(f"Failed to load from PostgreSQL: {str(e)}")
+        print("Falling back to CSV/pickle file...")
+    
+    # Fall back to CSV/pickle if PostgreSQL fails
     try:
         # Try to load pickle first (faster)
         pickle_path = os.path.join(os.path.dirname(__file__), '..', 'all_games_data.pkl')
@@ -87,6 +136,7 @@ def load_games_data():
         if missing_columns:
             raise ValueError(f"Missing required columns after mapping: {missing_columns}")
             
+        print(f"Loaded {len(df)} games from CSV/pickle file")
         return df
     except Exception as e:
         print(f"Error loading data: {str(e)}")

@@ -18,10 +18,10 @@ export const DateFilterDropdown: React.FC<DateFilterDropdownProps> = ({
   const [showCustom, setShowCustom] = useState(false);
 
   const filters = [
-    { value: 'day' as TimeFilter, label: 'Single Day' },
-    { value: 'week' as TimeFilter, label: 'One Week' },
-    { value: 'month' as TimeFilter, label: 'One Month' },
-    { value: 'season' as TimeFilter, label: 'All Seasons' },
+    { value: 'day' as TimeFilter, label: 'Day' },
+    { value: 'week' as TimeFilter, label: 'Week' },
+    { value: 'month' as TimeFilter, label: 'Month' },
+    { value: 'season' as TimeFilter, label: 'Season' },
     { value: 'custom' as TimeFilter, label: 'Custom Range' },
   ];
 
