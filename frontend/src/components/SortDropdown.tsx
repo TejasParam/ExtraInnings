@@ -10,7 +10,8 @@ export const SortDropdown: React.FC<SortDropdownProps> = ({ value, onChange }) =
   const [isOpen, setIsOpen] = useState(false);
 
   const options = [
-    { value: 'excitement' as SortOption, label: 'Excitement Score' },
+    { value: 'excitement' as SortOption, label: 'Most Exciting' },
+    { value: 'excitement_asc' as SortOption, label: 'Least Exciting' },
     { value: 'date' as SortOption, label: 'Date' },
   ];
 

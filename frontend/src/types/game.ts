@@ -24,5 +24,5 @@ export interface ApiResponse<T> {
   loading: boolean;
 }
 
-export type SortOption = 'excitement' | 'date';
+export type SortOption = 'excitement' | 'excitement_asc' | 'date';
 export type TimeFilter = 'day' | 'week' | 'month' | 'season' | 'custom';

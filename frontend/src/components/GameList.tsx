@@ -145,6 +145,8 @@ export const GameList: React.FC = () => {
         games: grouped[date].sort((a, b) => {
           if (sortOption === 'excitement') {
             return b.excitement_score - a.excitement_score;
+          } else if (sortOption === 'excitement_asc') {
+            return a.excitement_score - b.excitement_score;
           }
           return new Date(b.game_date).getTime() - new Date(a.game_date).getTime();
         })
@@ -154,6 +156,8 @@ export const GameList: React.FC = () => {
       const sortedGames = games.sort((a, b) => {
         if (sortOption === 'excitement') {
           return b.excitement_score - a.excitement_score;
+        } else if (sortOption === 'excitement_asc') {
+          return a.excitement_score - b.excitement_score;
         }
         return new Date(b.game_date).getTime() - new Date(a.game_date).getTime();
       });

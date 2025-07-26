@@ -154,7 +154,7 @@ async def get_games(
     season: Optional[str] = Query(None, description="Filter by season (year)"),
     limit: int = Query(25, ge=1, le=1000, description="Number of games to return"),
     page: int = Query(1, ge=1, description="Page number"),
-    sort: str = Query("excitement", description="Sort by: excitement, date, or score_diff"),
+    sort: str = Query("excitement", description="Sort by: excitement, excitement_asc, date, or score_diff"),
     team: Optional[str] = Query(None, description="Filter by team abbreviation"),
     start: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
@@ -188,6 +188,8 @@ async def get_games(
         # Apply sorting
         if sort == "excitement":
             filtered_df = filtered_df.sort_values('excitement', ascending=False)
+        elif sort == "excitement_asc":
+            filtered_df = filtered_df.sort_values('excitement', ascending=True)
         elif sort == "date":
             filtered_df = filtered_df.sort_values('date', ascending=False)
         elif sort == "score_diff":
