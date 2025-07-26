@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Game, SortOption, TimeFilter } from '../types/game';
 import { DateFilterDropdown } from './DateFilterDropdown';
 import { SortDropdown } from './SortDropdown';
+import { TeamFilterDropdown } from './TeamFilterDropdown';
 import { GameCard } from './GameCard';
 import { useGames } from '../hooks/useGames';
 
@@ -10,6 +11,7 @@ export const GameList: React.FC = () => {
   const [sortOption, setSortOption] = useState<SortOption>('excitement');
   const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
   const [periodOffset, setPeriodOffset] = useState(0); // 0 = current/most recent, higher = older periods
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]); // New state for team filter
 
   // Get the maximum offset for the current filter type
   const getMaxOffset = (filter: TimeFilter) => {
@@ -45,6 +47,8 @@ export const GameList: React.FC = () => {
   // Reset offset when filter changes
   useEffect(() => {
     setPeriodOffset(0);
+    // Optionally reset team filter when time filter changes - uncomment if desired
+    // setSelectedTeams([]);
   }, [timeFilter]);
 
   // Calculate date range based on filter and offset
@@ -112,6 +116,7 @@ export const GameList: React.FC = () => {
     sort: sortOption,
     start: currentDateRange.start,
     end: currentDateRange.end,
+    teams: selectedTeams,
     limit: 500,
   });
 
@@ -238,6 +243,10 @@ export const GameList: React.FC = () => {
             value={timeFilter}
             onChange={setTimeFilter}
             onCustomRange={handleCustomRange}
+          />
+          <TeamFilterDropdown
+            value={selectedTeams}
+            onChange={setSelectedTeams}
           />
           <SortDropdown
             value={sortOption}

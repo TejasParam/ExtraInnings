@@ -155,7 +155,7 @@ async def get_games(
     limit: int = Query(25, ge=1, le=1000, description="Number of games to return"),
     page: int = Query(1, ge=1, description="Page number"),
     sort: str = Query("excitement", description="Sort by: excitement, excitement_asc, date, or score_diff"),
-    team: Optional[str] = Query(None, description="Filter by team abbreviation"),
+    team: Optional[str] = Query(None, description="Filter by team abbreviation (comma-separated for multiple teams)"),
     start: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
 ):
@@ -171,11 +171,21 @@ async def get_games(
             filtered_df = filtered_df[filtered_df['season'] == int(season)]
         
         if team:
-            team_upper = team.upper()
-            filtered_df = filtered_df[
-                (filtered_df['home_team'].str.upper() == team_upper) |
-                (filtered_df['away_team'].str.upper() == team_upper)
-            ]
+            if ',' in team:
+                # Handle multiple teams separated by commas
+                team_list = [t.strip() for t in team.split(',')]
+                # Create explicit boolean masks
+                home_mask = filtered_df['home_team'].isin(team_list)
+                away_mask = filtered_df['away_team'].isin(team_list)
+                combined_mask = home_mask | away_mask
+                filtered_df = filtered_df[combined_mask]
+            else:
+                # Handle single team (original logic)
+                team_upper = team.upper()
+                filtered_df = filtered_df[
+                    (filtered_df['home_team'].str.upper() == team_upper) |
+                    (filtered_df['away_team'].str.upper() == team_upper)
+                ]
         
         if start:
             start_date = pd.to_datetime(start)

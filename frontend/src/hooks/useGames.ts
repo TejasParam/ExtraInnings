@@ -9,7 +9,7 @@ interface UseGamesParams {
   limit?: number;
   page?: number;
   sort?: string;
-  team?: string;
+  teams?: string[]; // Changed from team to teams and made it an array
   start?: string;
   end?: string;
 }
@@ -30,7 +30,7 @@ export const useGames = (params: UseGamesParams = {}): ApiResponse<GameResponse>
         if (params.limit) queryParams.append('limit', params.limit.toString());
         if (params.page) queryParams.append('page', params.page.toString());
         if (params.sort) queryParams.append('sort', params.sort);
-        if (params.team) queryParams.append('team', params.team);
+        if (params.teams && params.teams.length > 0) queryParams.append('team', params.teams.join(','));
         if (params.start) queryParams.append('start', params.start);
         if (params.end) queryParams.append('end', params.end);
 
@@ -44,7 +44,7 @@ export const useGames = (params: UseGamesParams = {}): ApiResponse<GameResponse>
     };
 
     fetchGames();
-  }, [params.season, params.limit, params.page, params.sort, params.team, params.start, params.end]);
+  }, [params.season, params.limit, params.page, params.sort, params.teams, params.start, params.end]);
 
   return { data, error, loading };
 };
